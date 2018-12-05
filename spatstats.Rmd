@@ -1,0 +1,79 @@
+---
+title: "spatstat"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r setup2}
+require(spatstat)
+require(tidyr)
+require(dplyr)
+require(magrittr)
+require(GGally)
+
+library(network)
+library(sna)
+library(ggplot2)
+require(igraph)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r data, echo=FALSE}
+cells <- read.csv('C:/Users/owen01/OVO4/T.csv')
+set1 <- filter(cells, XMin<6000, XMin>3000, YMin < 6000, YMin>3500)
+mypattern <- ppp(set1$XMin, set1$YMin, c(3000,4800), c(4000,5500), marks = set1$Classifier.Label)
+plot(mypattern)
+summary(mypattern)
+density(mypattern)
+
+pdf('Kest_TS_TMA1.pdf')
+plot(Kest(mypattern))
+dev.off()
+
+result <- density(mypattern)
+
+pdf('density_TS_TMA1.pdf')
+plot(result)
+dev.off()
+
+result <- Kcross(mypattern)
+
+pdf('KCross_TS_TMA1.pdf')
+plot(result)
+dev.off()
+
+tma1 <- set1 %>% #filter(Classifier.Label=='tumour') 
+  select(XMin, YMin) 
+#spatgraphs::spatgraph(set1, type = 'knn', par=3)
+#'Spatgraphs' edge connection list-of-lists:
+#graph type 'knn', par=(3), for 1103 points.
+sg1 <- spatgraphs::spatgraph(tma1, type = 'geometric', par=20)
+cols <- c('blue', 'green')
+cols_vec <- cols[set1$Classifier.Label]
+plot(sg1, tma1, points.col = cols_vec)
+
+
+#tma1 <- set1 %>% filter(Classifier.Label=='stroma') %>%select(XMin, YMin) 
+#spatgraphs::spatgraph(set1, type = 'knn', par=3)
+#'Spatgraphs' edge connection list-of-lists:
+#graph type 'knn', par=(3), for 1103 points.
+sg1 <- spatgraphs::spatgraph(tma1, type = 'knn', par=3)
+plot(sg1, tma1)
+
+#knn for 3 neighbours
+x <- knnDE(tma1, tma1, 3)
+avgknn <- mean(x[x!=Inf])
+
+avgknn
+```
+
+
