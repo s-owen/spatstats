@@ -4,23 +4,21 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-
-
-```{r setup2}
+#knitr::opts_chunk$set(echo = TRUE)
 require(spatstat)
 require(tidyr)
 require(dplyr)
 require(magrittr)
 require(GGally)
-
+require(TDA)
 library(network)
 library(sna)
 library(ggplot2)
 require(igraph)
+```
+
+```{r setup2}
+
 ```
 
 ## Including Plots
@@ -29,51 +27,131 @@ You can also embed plots, for example:
 
 ```{r data, echo=FALSE}
 cells <- read.csv('C:/Users/owen01/OVO4/T.csv')
-set1 <- filter(cells, XMin<6000, XMin>3000, YMin < 6000, YMin>3500)
-mypattern <- ppp(set1$XMin, set1$YMin, c(3000,4800), c(4000,5500), marks = set1$Classifier.Label)
-plot(mypattern)
-summary(mypattern)
-density(mypattern)
+set1 <- filter(cells, XMin<10000, XMin>7500, YMin < 13000, YMin>10000)
+TMA2_pattern <- ppp(set1$XMin, set1$YMin, c(7500, 10000), c(10000,13000), marks = set1$Classifier.Label)
 
-pdf('Kest_TS_TMA1.pdf')
-plot(Kest(mypattern))
+plot(TMA2_pattern)
+summary(TMA2_pattern)
+plot(density(TMA2_pattern))
+
+png(file = 'Kest_TS_TMA2.png')
+plot(Kest(TMA2_pattern))
 dev.off()
 
-result <- density(mypattern)
+result <- density(TMA2_pattern)
 
-pdf('density_TS_TMA1.pdf')
+pdf('density_TS_TMA2.pdf')
 plot(result)
 dev.off()
 
-result <- Kcross(mypattern)
+result <- Kcross(TMA2_pattern)
 
-pdf('KCross_TS_TMA1.pdf')
+pdf('KCross_TS_TMA2.pdf')
 plot(result)
 dev.off()
 
-tma1 <- set1 %>% #filter(Classifier.Label=='tumour') 
+png('TMA2_Gplots.png')
+par(mfcol=c(2,2))
+plot(Gdot(TMA2_pattern, 'stroma'))
+plot(Gcross(TMA2_pattern))
+plot(Gcross(TMA2_pattern))
+plot(Gdot(TMA2_pattern, 'tumour'))
+dev.off()
+
+png('plot_points_TMA2.png')
+
+par(mfrow=c(2,2))
+plot(TMA2_pattern[TMA2_pattern$marks=="tumour"], chars=1, main="Tumour")    #$ (TeX bug workaround)
+plot(TMA2_pattern[TMA2_pattern$marks=="stroma"], chars=19, main="Stroma") #$ (TeX bug workaround)
+plot(TMA2_pattern, chars=c(1,19), main="All points")
+n <- floor(length(TMA2_pattern$marks) / 2); w <- TMA2_pattern$window
+set.seed(17)
+x.random <- runif(n, min=w$xrange[1], max=w$xrange[2])
+y.random <- runif(n, min=w$yrange[1], max=w$yrange[2])
+plot.owin(w, main="Random points")
+points(x.random, y.random, pch=19, col="Gray",
+     xaxt="n", xlab="", yaxt="n", ylab="", xlim=w$xrange, ylim=w$yrange)
+
+dev.off()
+
+TMA2 <- set1 %>% #filter(Classifier.Label=='tumour') 
   select(XMin, YMin) 
-#spatgraphs::spatgraph(set1, type = 'knn', par=3)
+#sg1 <- spatgraphs::spatgraph(TMA2, type = 'knn', par=2)
 #'Spatgraphs' edge connection list-of-lists:
 #graph type 'knn', par=(3), for 1103 points.
-sg1 <- spatgraphs::spatgraph(tma1, type = 'geometric', par=20)
+sg1 <- spatgraphs::spatgraph(TMA2, type = 'geometric', par=10)
 cols <- c('blue', 'green')
 cols_vec <- cols[set1$Classifier.Label]
-plot(sg1, tma1, points.col = cols_vec)
+png('radius20geometric_TMA2.png')
+plot(sg1, TMA2, points.col = cols_vec)
+dev.off()
 
-
-#tma1 <- set1 %>% filter(Classifier.Label=='stroma') %>%select(XMin, YMin) 
+#TMA2 <- set1 %>% filter(Classifier.Label=='stroma') %>%select(XMin, YMin) 
 #spatgraphs::spatgraph(set1, type = 'knn', par=3)
 #'Spatgraphs' edge connection list-of-lists:
 #graph type 'knn', par=(3), for 1103 points.
-sg1 <- spatgraphs::spatgraph(tma1, type = 'knn', par=3)
-plot(sg1, tma1)
+sg1 <- spatgraphs::spatgraph(TMA2, type = 'knn', par=2)
+png('3nearestneighbourTMA2.png')
+cols <- c('blue', 'green')
+cols_vec <- cols[set1$Classifier.Label]
+plot(sg1, TMA2, points.col=cols_vec)
+dev.off()
 
 #knn for 3 neighbours
-x <- knnDE(tma1, tma1, 3)
+x <- knnDE(TMA2, TMA2, 3)
 avgknn <- mean(x[x!=Inf])
 
 avgknn
 ```
+```{r, echo=FALSE}
+cells <- read.csv('C:/Users/owen01/OVO4/TMA_CD8.csv')
+cells <- cells %>% mutate(Xmin <- XMin + 6000*TMA.Row, YMin <- YMin + 6000*TMA.Column)
+plot(cells$Xmin, cells$Ymin)
+```
+
+```{r, echo=FALSE}
+cells <- cells %>% mutate(TMA.number = TMA.Row*10+TMA.Column)
+for (i in unique(cells$TMA.number)){
+  cells_set <- cells %>% filter(TMA.number==i)
+TMA_pattern <- ppp(cells_set$XMin, cells_set$YMin, c(0,6000), c(0,6000), marks = cells_set$Classifier.Label)
+
+pdf(paste0('plot_ppp', i, '.pdf'))
+plot(TMA_pattern)
+dev.off()
+print(median(nndist(TMA_pattern)))}
+
+cells <- cells %>% rename(Nucleus.Area=Nucleus.Area..µm²., Nucleus.Perimeter=Nucleus.Perimeter..µm.)
+
+
+ggplot(cells, aes(x=Nucleus.Area, color=as.factor(TMA.number), fill=as.factor(TMA.number))) + geom_density( position="identity") + xlim(c(0,30))
+
+ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(TMA.number))) +
+  geom_density(position="identity") + xlim(c(0,50))
+
+ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(TMA.number))) +
+  geom_histogram(position="identity", bins=100)
+
+
+
+ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Classifier.Label))) + geom_density( position="identity", alpha=0.5) + xlim(c(0,30))
+
+ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Classifier.Label))) +
+  geom_density(position="identity") + xlim(c(0,50))
+
+ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Classifier.Label))) +
+  geom_histogram(position="identity")
+
+
+
+ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Stain.1.Classification))) + geom_density( position="identity")
+
+ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Stain.1.Classification))) +
+  geom_density(position="identity")
+
+ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Stain.1.Classification))) +
+  geom_density(position="identity")
+
+```
+
 
 
