@@ -131,7 +131,7 @@ ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(TMA.number))) +
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(TMA.number))) +
   geom_density(position="identity")
 
-+ 
+ggplot(cells, aes(y=Nucleus.Roundness,  x=as.factor(TMA.number))) +
   geom_boxplot(notch=TRUE)
 
 ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Classifier.Label))) + geom_density( position="identity", alpha=0.5) + xlim(c(0,30))
@@ -142,15 +142,25 @@ ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Classifier.Label))) +
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Classifier.Label))) +
   geom_density(position="identity")
 
+ggplot(cells, aes(y=Nucleus.Roundness,  x=as.factor(Classifier.Label))) +
+  geom_boxplot(notch=TRUE)
 
 
 ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Stain.1.Classification))) + geom_density( position="identity")
+ggplot(cells, aes(y=Nucleus.Area,  x=as.factor(Stain.1.Classification))) +
+  geom_boxplot(notch=TRUE)
 
 ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Stain.1.Classification))) +
   geom_density(position="identity")
 
+ggplot(cells, aes(y=Nucleus.Perimeter,  x=as.factor(Stain.1.Classification))) +
+  geom_boxplot(notch=TRUE)
+
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Stain.1.Classification))) +
   geom_density(position="identity")
+
+ggplot(cells, aes(y=Nucleus.Roundness,  x=as.factor(Stain.1.Classification))) +
+  geom_boxplot(notch=TRUE)
 
 ```
 
