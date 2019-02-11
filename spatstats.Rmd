@@ -123,15 +123,16 @@ print(median(nndist(TMA_pattern)))}
 cells <- cells %>% rename(Nucleus.Area=Nucleus.Area..µm²., Nucleus.Perimeter=Nucleus.Perimeter..µm.)
 
 
-ggplot(cells, aes(x=Nucleus.Area, color=as.factor(TMA.number), fill=as.factor(TMA.number))) + geom_density( position="identity") + xlim(c(0,30))
+ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(TMA.number))) + geom_density( position="identity") + xlim(c(0,30))
 
 ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(TMA.number))) +
   geom_density(position="identity") + xlim(c(0,50))
 
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(TMA.number))) +
-  geom_histogram(position="identity", bins=100)
+  geom_density(position="identity")
 
-
++ 
+  geom_boxplot(notch=TRUE)
 
 ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Classifier.Label))) + geom_density( position="identity", alpha=0.5) + xlim(c(0,30))
 
@@ -139,7 +140,7 @@ ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Classifier.Label))) +
   geom_density(position="identity") + xlim(c(0,50))
 
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Classifier.Label))) +
-  geom_histogram(position="identity")
+  geom_density(position="identity")
 
 
 
