@@ -125,8 +125,14 @@ cells <- cells %>% rename(Nucleus.Area=Nucleus.Area..µm²., Nucleus.Perimeter=N
 
 ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(TMA.number))) + geom_density( position="identity") + xlim(c(0,30))
 
+ggplot(cells, aes(y=Nucleus.Area,  x=as.factor(TMA.number))) +
+  geom_boxplot(notch=TRUE)
+
 ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(TMA.number))) +
   geom_density(position="identity") + xlim(c(0,50))
+
+ggplot(cells, aes(y=Nucleus.Perimeter,  x=as.factor(TMA.number))) +
+  geom_boxplot(notch=TRUE)
 
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(TMA.number))) +
   geom_density(position="identity")
@@ -143,24 +149,24 @@ ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Classifier.Label))) +
   geom_density(position="identity")
 
 ggplot(cells, aes(y=Nucleus.Roundness,  x=as.factor(Classifier.Label))) +
-  geom_boxplot(notch=TRUE)
+  geom_boxplot(notch=TRUE) + facet_grid(. ~ as.factor(Stain.1.Classification))
 
 
 ggplot(cells, aes(x=Nucleus.Area, fill=as.factor(Stain.1.Classification))) + geom_density( position="identity")
 ggplot(cells, aes(y=Nucleus.Area,  x=as.factor(Stain.1.Classification))) +
-  geom_boxplot(notch=TRUE)
+  geom_boxplot(notch=TRUE) + facet_grid(. ~ as.factor(Classifier.Label))
 
 ggplot(cells, aes(x=Nucleus.Perimeter,  fill=as.factor(Stain.1.Classification))) +
   geom_density(position="identity")
 
 ggplot(cells, aes(y=Nucleus.Perimeter,  x=as.factor(Stain.1.Classification))) +
-  geom_boxplot(notch=TRUE)
+  geom_boxplot(notch=TRUE) + facet_grid(. ~ as.factor(Classifier.Label))
 
 ggplot(cells, aes(x=Nucleus.Roundness,  fill=as.factor(Stain.1.Classification))) +
   geom_density(position="identity")
 
 ggplot(cells, aes(y=Nucleus.Roundness,  x=as.factor(Stain.1.Classification))) +
-  geom_boxplot(notch=TRUE)
+  geom_boxplot(notch=TRUE) + facet_grid(. ~ as.factor(Classifier.Label))
 
 ```
 
