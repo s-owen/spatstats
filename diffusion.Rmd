@@ -1,0 +1,139 @@
+---
+title: "Diffusion model"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r diffusion}
+# NOT RUN {
+##============================================
+## Basic Usage:
+##   explore the example
+##============================================
+# }
+# NOT RUN {
+data(diffusion)
+## (1) minimal example
+#plot(sim(diffusion))
+## show "grid of environmental conditions"
+image(inputs(diffusion))
+
+## (2) scenario
+##     with homogeneous environment (no "refuge" in the middle)
+#no_refuge <- diffusion # Cloning of the whole model object
+#inputs(no_refuge) <- matrix(1, 100, 100)
+#plot(sim(no_refuge))
+  
+##============================================
+## Advanced Usage:
+##   Assign a function to the observer-slot.
+##============================================
+
+# }
+# NOT RUN {
+##============================================
+## Implementation:
+##   The code of the diffusion model.
+##   Note the use of the "initfunc"-slot.
+##============================================
+diffusion <- rwalkModel(
+  main = function(time, init, parms, inputs = NULL) {
+    speed   <- parms$speed
+    xleft   <- parms$area[1]
+    xright  <- parms$area[2]
+    ybottom <- parms$area[3]
+    ytop    <- parms$area[4]
+
+    x <- init$x  # x coordinate
+    y <- init$y  # y coordinate
+    a <- init$a  # angle (in radians)
+    n <- length(a)
+
+    ## Rule 1: respect environment (grid as given in "inputs")
+    ## 1a) identify location on "environmental 2D grid" for each individual
+    i.j <- array(c(pmax(1, ceiling(x)), pmax(1, ceiling(y))), dim=c(n, 2))
+
+    ## 1b) speed dependend on "environmental conditions"
+    speed <- speed * inputs[i.j]
+
+    ## Rule 2: Random Walk
+    a  <- (a + 2 * pi / runif(a)) 
+# }
+# NOT RUN {
+#<!-- %% (2 * pi) -->
+# }
+# NOT RUN {
+    dx <- speed * cos(a)
+    dy <- speed * sin(a)
+    x  <- x + dx
+    y  <- y + dy
+
+    ## Rule 3: Wrap Around
+    x <- ifelse(x > xright, xright, x)
+    y <- ifelse(y > ytop, ytop, y)
+    x <- ifelse(x < xleft, xleft, x)
+    y <- ifelse(y < ybottom, ybottom, y)
+    data.frame(x=x, y=y, a=a)
+  },
+  times  = c(from=2000, to=10000, by=500),
+  parms  = list(ninds=1000, speed = 1, area = c(0, 100, 0, 100)),
+  solver = "iteration",
+  initfunc = function(obj) {
+    ninds   <- obj@parms$ninds
+    xleft   <- obj@parms$area[1]
+    xright  <- obj@parms$area[2]
+    ybottom <- obj@parms$area[3]
+    ytop    <- obj@parms$area[4]
+    obj@init <- data.frame(x = runif(ninds) * (xright - xleft) + xleft,
+                           y = runif(ninds) * (ytop - ybottom) + ybottom,
+                           a = runif(ninds) * 2 * pi)
+    inp <- matrix(3, nrow=100, ncol=100)
+    inp[,10:60] <- 0.8
+    inp[,90:95] <- 1
+   
+    
+    
+    inputs(obj) <- inp
+    obj
+  }
+)
+
+observer(diffusion) <- function(state, ...) {
+  ## numerical output to the screen
+  cat("mean x=", mean(state$x),
+      ", mean y=", mean(state$y),
+      ", sd   x=", sd(state$x),
+      ", sd   y=", sd(state$y), "\n")
+  ## animation
+  par(mfrow=c(2,2))
+  plot(state$x, state$y, xlab="x", ylab="y", pch=16, col="red", xlim=c(0, 100))
+  hist(state$y, breaks = 50)
+  hist(state$x, breaks = 50)
+  image(inputs(diffusion))
+  ## default case: return the state --> iteration stores it in "out"
+  state
+}
+
+sim(diffusion)
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
